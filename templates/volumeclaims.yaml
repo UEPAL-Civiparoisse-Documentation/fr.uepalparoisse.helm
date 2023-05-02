@@ -1,0 +1,42 @@
+--- 
+apiVersion: v1 
+kind: PersistentVolumeClaim 
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: dbvolclaim
+spec:
+  storageClassName: {{ .Values.storageClassName }}
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: {{ .Chart.Annotations.storageVolumeMode }}
+  resources:
+    requests:
+      storage: {{ .Chart.Annotations.storageDbsize }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: filevolclaim
+spec:
+  storageClassName: {{ .Values.storageClassName }}
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: {{ .Chart.Annotations.storageVolumeMode }}
+  resources:
+    requests:
+      storage: {{ .Chart.Annotations.storageFilesize }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: privatevolclaim
+spec:
+  storageClassName: {{ .Values.storageClassName }}
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: {{ .Chart.Annotations.storageVolumeMode }}
+  resources:
+    requests:
+      storage: {{ .Chart.Annotations.storagePrivatesize }}

@@ -1,0 +1,80 @@
+apiVersion: v2
+name: civiparoisse
+description: A Helm chart for Kubernetes
+
+# A chart can be either an 'application' or a 'library' chart.
+#
+# Application charts are a collection of templates that can be packaged into versioned archives
+# to be deployed.
+#
+# Library charts provide useful utilities or functions for the chart developer. They're included as
+# a dependency of application charts to inject those utilities and functions into the rendering
+# pipeline. Library charts do not define any templates and therefore cannot be deployed.
+type: application
+
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+# Versions are expected to follow Semantic Versioning (https://semver.org/)
+version: 0.1.2
+
+# This is the version number of the application being deployed. This version number should be
+# incremented each time you make changes to the application. Versions are not expected to
+# follow Semantic Versioning. They should reflect the version the application is using.
+# It is recommended to use it with quotes.
+appVersion: "0.1.0"
+
+annotations:
+  imapDemoService: "imapdemo"
+  smtpDemoService: "smtpdemo"
+  smtpPort: 25
+  imapPort: 993
+  imapIsSSL: 1
+  imapInboxFolder: "INBOX"
+  maildomain: "civiparoisse.test"
+  bounceLocalpart: "civibounce+"
+  bounceReturnpath: "bounce@civiparoisse.test"
+  imapInboxFolder: "INBOX"
+  cacertsMountpoint: "/etc/ssl/certs"
+  mailserverCaCertMountpoint: "/usr/local/share/ca-certificates/mail_ca.crt"
+  genHashedCaCertsMountpoint: "/CERTS"
+  mailserverCertMountpoint: "/KEYS/server.crt"
+  mailserverKeyMountpoint: "/KEYS/server.key"
+  imapUsernameSecretMountpoint: "/var/run/secrets/imapUsername"
+  imapUsername2SecretMountpoint: "/var/run/secrets/imapUsername2"
+  imapPasswordSecretMountpoint: "/var/run/secrets/imapPassword"
+  smtpUsernameSecretMountpoint: "/var/run/secrets/smtpUsername"
+  smtpPasswordSecretMountpoint: "/var/run/secrets/smtpPassword"
+  dbserversslca: "/KEYS/db_ca.x509"
+  dbserversslcert: "/KEYS/civicrmdb.x509"
+  dbserversslkey: "/KEYS/civicrmdb.pem"
+  dbserverconfigmountpoint: "/etc/mysql/conf.d/config_mysqld.cnf"
+  dbrouterca: "/KEYS/db_ca.x509"
+  secretrefsDrupalAdminUserSecret: "drupalAdminUser"
+  secretrefsDrupalAdminPasswordSecret: "drupalAdminPassword"
+  secretrefsDbsecret: "dbsecret"
+  secretrefsDbrootsecret: "dbrootsecret"
+  toolsImage: "uepal_test/tools:latest"
+  cronImage: "uepal_test/cron:latest"
+  dbImage: "uepal_test/mysql_tls_server:latest"
+  dbrouterImage: "uepal_test/mysql_tls_router:latest"  
+  initImage: "uepal_test/init:latest"
+  httpdImage: "uepal_test/httpd:latest"
+  updateImage: "uepal_test/update:latest"
+  mailserverImage: "uepal_test/test_opensmtpd_dovecot:latest"
+  genHashedCaImage: "uepal_test/gen_hashed_ca:latest"
+  storageDbsize: "1Gi"
+  storageFilesize: "1Gi"
+  storagePrivatesize: "1Gi"
+  storageVolumeMode: Filesystem
+  dbcaCn: "dbca"
+  dbServerCn: "civicrmdb"
+  mailCaCn: "mailca"
+  mailServerCn: "civimail"
+  lang: "C.UTF-8"
+  imapUsernameRefSecret: "imapUsername"
+  imapUsername2RefSecret: "imapUsername2"
+  imapPasswordRefSecret: "imapPassword"
+  smtpPasswordRefSecret: "smtpPassword"
+  smtpUsernameRefSecret: "smtpUsername"
+  serverstransportDisableHTTP2: true  
+icon: "https://www.uepal.fr/wp-content/themes/uepal/dist/images/uepal-logo.svg"  

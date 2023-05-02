@@ -1,0 +1,13 @@
+{{- if eq .Values.mail.deployMailserver "1" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-mailserver
+  namespace: {{ .Release.Namespace }}
+data:
+  SMTP_USER_SECRET : {{ .Chart.Annotations.smtpUsernameRefSecret | quote }}
+  SMTP_PASSWD_SECRET: {{ .Chart.Annotations.smtpPasswordRefSecret | quote }}
+  IMAP_PASSWD_SECRET: {{ .Chart.Annotations.imapPasswordRefSecret | quote }}
+  IMAP_USER_SECRET: {{ .Chart.Annotations.imapUsernameRefSecret | quote }}
+  IMAP_USER2_SECRET: {{ .Chart.Annotations.imapUsername2RefSecret | quote }}
+{{- end }}

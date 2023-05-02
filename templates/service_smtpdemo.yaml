@@ -1,0 +1,14 @@
+{{- if eq .Values.mail.deployMailserver "1" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Annotations.smtpDemoService }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    smtpimpl: smtpimpl
+  ports:
+    - protocol: TCP
+      port: 25
+      targetPort: 25
+{{ end }}

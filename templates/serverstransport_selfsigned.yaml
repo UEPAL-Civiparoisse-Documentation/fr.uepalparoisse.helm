@@ -1,0 +1,16 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: ServersTransport
+metadata:
+  name: transport-selfsigned
+  namespace: {{ .Release.Namespace }}
+spec:
+  serverName: {{ .Values.externalhost }}
+  maxIdleConnsPerHost: {{ .Values.serverstransport.maxIdleConnsPerHost }}
+  disableHTTP2: {{ .Chart.Annotations.serverstransportDisableHTTP2 }}
+  forwardingTimeouts:
+    dialTimeout : {{ .Values.serverstransport.dialTimeout }}
+    responseHeaderTimeout: {{ .Values.serverstransport.responseHeaderTimeout }}
+    readIdleTimeout: {{ .Values.serverstransport.readIdleTimeout }}
+    idleConnTimeout: {{ .Values.serverstransport.idleConnTimeout }}
+  rootCAsSecrets:
+    - externca

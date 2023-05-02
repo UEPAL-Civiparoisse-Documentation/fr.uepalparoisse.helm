@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-db
+  namespace: {{ .Release.Namespace }}
+data:
+  mysqldcnf: |
+    [mysqld]
+    skip_networking = 1
+

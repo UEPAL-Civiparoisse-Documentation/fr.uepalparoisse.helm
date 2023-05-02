@@ -1,0 +1,17 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: ingressproxy
+  namespace: {{ .Release.Namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: "Host(`{{ .Values.externalhost }}`)"
+      kind: Rule
+      services:
+        - name: civicrmhttpd
+          namespace: {{ .Release.Namespace }}
+          port: 443
+          serversTransport: transport-selfsigned
+  tls: {}

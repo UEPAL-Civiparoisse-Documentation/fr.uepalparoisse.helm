@@ -1,0 +1,110 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: civicron
+  namespace: {{ .Release.Namespace }}
+spec:
+  suspend: {{ .Values.cron.suspend }}
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: "Forbid"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          automountServiceAccountToken: false
+          restartPolicy: "OnFailure"
+          shareProcessNamespace: true
+          initContainers:
+{{- if eq .Values.mail.deployMailserver "1" }}
+          - name: crongenca
+            image: {{ .Chart.Annotations.genHashedCaImage }}
+            imagePullPolicy: Never
+            resources:
+              requests:
+                memory: {{ .Values.limits.genca.memory }}
+                cpu: {{ .Values.limits.genca.cpu }}
+              limits:
+                memory: {{ .Values.limits.genca.memory }}
+                cpu: {{ .Values.limits.genca.cpu }}
+            volumeMounts:
+            - name: mailcacertvol
+              mountPath: {{ .Chart.Annotations.mailserverCaCertMountpoint }}
+              subPath: {{ .Values.mail.caCertField }}
+              readOnly: true
+            - name: croncacertsvol
+              mountPath: {{ .Chart.Annotations.genHashedCaCertsMountpoint }}
+{{- end }}
+          - name: wait-db-cron
+            resources:
+              requests:
+                memory: {{ .Values.limits.cron_init.memory }}
+                cpu: {{ .Values.limits.cron_init.cpu }}
+              limits:
+                memory: {{ .Values.limits.cron_init.memory }}
+                cpu: {{ .Values.limits.cron_init.cpu }}
+            image: busybox
+            imagePullPolicy: Never
+            command: [ 'sh','-c','until nc -z civicrmdb 3306; do echo waiting for paroisse-dbp;sleep 2;done' ]
+          containers:
+          - name: cron
+            resources:
+              requests:
+                memory: {{ .Values.limits.cron.memory }}
+                cpu: {{ .Values.limits.cron.cpu }}
+              limits:
+                memory: {{ .Values.limits.cron.memory }}
+                cpu: {{ .Values.limits.cron.cpu }}
+            image: {{ .Chart.Annotations.cronImage }}
+            imagePullPolicy: Never
+            volumeMounts:
+            - name: filevol
+              mountPath: /app/web/sites
+            - name: privatevol
+              mountPath: /app/private          
+            - name: dbcronsocketvol
+              mountPath: /var/run/mysqld
+{{- if eq .Values.mail.deployMailserver "1" }}
+            - name: croncacertsvol
+              mountPath: {{ .Chart.Annotations.cacertsMountpoint }}
+              readOnly: true
+{{- end }}
+          - name: dbrouter
+            resources:
+              requests:
+                memory: {{ .Values.limits.db_router.memory }}
+                cpu: {{ .Values.limits.db_router.cpu }}
+              limits:
+                memory: {{ .Values.limits.db_router.memory }}
+                cpu: {{ .Values.limits.db_router.cpu }}
+            image: {{ .Chart.Annotations.dbrouterImage }}
+            imagePullPolicy: Never                
+            volumeMounts:
+            - name: dbcronsocketvol
+              mountPath: /SOCK
+            - name: dbcacertvol
+              mountPath: {{ .Chart.Annotations.dbrouterca }}
+              subPath: {{ .Values.db.dbrouterCaField }}
+              readOnly: true            
+          volumes:
+            - name: filevol
+              persistentVolumeClaim:
+                claimName: filevolclaim
+            - name: privatevol
+              persistentVolumeClaim:
+                claimName: privatevolclaim            
+            - name: dbcronsocketvol
+              emptyDir:
+                medium: Memory
+            - name: dbcacertvol
+              secret:
+                secretName: {{ .Values.db.dbrouterCaSecret }}
+                optional: false
+{{- if eq .Values.mail.deployMailserver "1" }}
+            - name: mailcacertvol
+              secret:
+                secretName: {{ .Values.mail.caCertSecret }}
+                optional: false
+            - name: croncacertsvol
+              emptyDir:
+                 medium: Memory
+{{- end }}

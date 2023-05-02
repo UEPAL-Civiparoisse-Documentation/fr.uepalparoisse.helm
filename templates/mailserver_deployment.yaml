@@ -1,0 +1,107 @@
+{{- if eq .Values.mail.deployMailserver "1" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailserver-deployment
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: paroisse-mailserver  
+  replicas: {{ .Values.replicas.mailserver }}
+  template:
+    metadata:
+      labels:
+        app: paroisse-mailserver
+        imapimpl: imapimpl
+        smtpimpl: smtpimpl
+    spec:
+      automountServiceAccountToken: false
+      initContainers:
+      - name: mailgenca
+        image: {{ .Chart.Annotations.genHashedCaImage }}
+        imagePullPolicy: Never
+        volumeMounts:
+        - name: mailcacertvol
+          mountPath: {{ .Chart.Annotations.mailserverCaCertMountpoint }}
+          subPath: {{ .Values.mail.caCertField }}
+          readOnly: true
+        - name: mailservercacertsvol
+          mountPath: {{ .Chart.Annotations.genHashedCaCertsMountpoint }}
+      containers:
+      - name:  mailserver
+        image: {{ .Chart.Annotations.mailserverImage }}
+        imagePullPolicy: Never        
+        envFrom:
+        - configMapRef:
+            name: config-mailserver
+        volumeMounts:
+        - name: imapuservol
+          mountPath: {{ .Values.mail.imapUsernameSecretMountpoint }} 
+          subPath: {{ .Values.mail.imapUsernameSecretField }}
+          readOnly: true
+        - name: imapuser2vol
+          mountPath: {{ .Values.mail.imapUsername2SecretMountpoint }}
+          subPath: {{ .Values.mail.imapUsername2SecretField }}
+          readOnly: true
+        - name: imappasswdvol
+          mountPath: {{ .Values.mail.imapPasswordSecretMountpoint }}
+          subPath: {{ .Values.mail.imapPasswordSecretField }}
+          readOnly: true
+        - name: smtpuservol
+          mountPath: {{ .Values.mail.smtpUsernameSecretMountpoint }}
+          subPath: {{ .Values.mail.smtpUsernameSecretField }}
+          readOnly: true
+        - name: smtppasswdvol
+          mountPath: {{ .Values.mail.smtpPasswordSecretMountpoint }}
+          subPath: {{ .Values.mail.smtpPasswordSecretField }}
+          readOnly: true
+        - name: mailserverkeyvol
+          mountPath: {{ .Chart.Annotations.mailserverKeyMountpoint }}
+          subPath: {{ .Values.mail.serverKeyField }}
+          readOnly: false
+        - name: mailservercertvol
+          mountPath: {{ .Chart.Annotations.mailserverCertMountpoint }}
+          subPath: {{ .Values.mail.serverCertField }}
+          readOnly: true
+        - name: mailservercacertsvol
+          mountPath: {{ .Chart.Annotations.cacertsMountpoint }}
+          readOnly: true
+      volumes:
+      - name: imapuservol
+        secret:
+          secretName: {{ .Values.mail.imapUsernameSecret }}
+          optional: false
+      - name: imapuser2vol
+        secret:
+          secretName: {{ .Values.mail.imapUsername2Secret }}
+          optional: false
+      - name: imappasswdvol
+        secret:
+          secretName: {{ .Values.mail.imapPasswordSecret }}
+          optional: false
+      - name: smtpuservol
+        secret:
+          secretName: {{ .Values.mail.smtpUsernameSecret }}
+          optional: false
+      - name: smtppasswdvol
+        secret:
+          secretName: {{ .Values.mail.smtpPasswordSecret }}
+          optional: false
+      - name: mailserverkeyvol
+        secret:
+          secretName: {{ .Values.mail.serverKeySecret }}
+          optional: false
+          defaultMode: 0400
+      - name: mailservercertvol
+        secret:
+          secretName: {{ .Values.mail.serverCertSecret }}
+          optional: false
+      - name: mailcacertvol
+        secret:
+          secretName: {{ .Values.mail.caCertSecret }}
+          optional: false
+      - name: mailservercacertsvol
+        emptyDir:
+          medium: Memory
+{{- end}}

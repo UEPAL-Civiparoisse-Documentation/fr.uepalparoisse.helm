@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-init
+  namespace: {{ .Release.Namespace }}
+data:
+  SERVERNAME: {{ .Values.servername | quote }}
+  PAROISSE_NAME: {{ .Values.init.paroisseName | quote }}
+  PAROISSE_ADDR: {{ .Values.init.paroisseAddr | quote }}
+  PAROISSE_CITY: {{ .Values.init.paroisseCity | quote }}
+  PAROISSE_PHONE: {{ .Values.init.paroissePhone | quote }}
+  PAROISSE_ZIPCODE: {{ .Values.init.paroisseZipCode | quote }}
+  PAROISSE_STREETNUMBER: {{ .Values.init.paroisseStreetNumber | quote }}
+  CIVI_DOMAIN: {{ .Values.init.civiDomain | quote }}
+  DBNAME_CIVICRM: {{ .Values.init.dbnameCivicrm | quote }}
+  DBNAME_DRUPAL: {{ .Values.init.dbnameDrupal | quote }}
+  DBNAME_CIVILOG: {{ .Values.init.dbnameCivilog | quote }}
+  DBHOST: {{ .Values.init.dbhost | quote }}
+  DBUSER: {{ .Values.init.dbuser | quote }}
+  TRUSTED_HOST_PATTERNS: {{ .Values.init.trustedHostPatterns | quote }}
+  MAILADMIN_ADDR: {{ .Values.init.mailadmin.addr | quote }}
+  MAILADMIN_NAME: {{ .Values.init.mailadmin.name | quote }}
+  MAILADMIN_DESCR: {{ .Values.init.mailadmin.descr | quote }}
+  MAILDIR: {{ .Values.init.maildir | quote }}
+  SITENAME: {{ .Values.init.sitename | quote }}
+  DRUPAL_ADMIN_USER_SECRET: {{ .Chart.Annotations.secretrefsDrupalAdminUserSecret | quote }}
+  DRUPAL_ADMIN_PASSWORD_SECRET: {{ .Chart.Annotations.secretrefsDrupalAdminPasswordSecret | quote }}
+  DBSECRET: {{ .Chart.Annotations.secretrefsDbsecret | quote }}
+  DBROOTSECRET: {{ .Chart.Annotations.secretrefsDbrootsecret | quote }}
+  IMAP_USERNAME_SECRET: {{ .Chart.Annotations.imapUsernameRefSecret | quote }}
+  IMAP_PASSWORD_SECRET: {{ .Chart.Annotations.imapPasswordRefSecret | quote }}
+  SMTP_USERNAME_SECRET: {{ .Chart.Annotations.smtpUsernameRefSecret | quote }}
+  SMTP_PASSWORD_SECRET: {{ .Chart.Annotations.smtpPasswordRefSecret | quote }}
+  MAILSITE_ADDR: {{ .Values.init.mailsiteaddr | quote }}
+  MAILDOMAIN_ADDR: {{ .Values.init.maildomainaddr | quote }}
+{{- if eq .Values.mail.deployMailserver "1" }}
+  MAILDOMAIN: {{ .Chart.Annotations.maildomain | quote }}
+  BOUNCE_LOCALPART: {{ .Chart.Annotations.bounceLocalpart | quote }}
+  BOUNCE_RETURNPATH: {{ .Chart.Annotations.bounceReturnpath | quote }}
+  IMAP_SERVER: {{ .Chart.Annotations.imapDemoService | quote }}
+  IMAP_PORT: {{ .Chart.Annotations.imapPort | quote }}
+  IMAP_IS_SSL: {{ .Chart.Annotations.imapIsSSL | quote }}
+  IMAP_INBOX_FOLDER: {{ .Chart.Annotations.imapInboxFolder | quote }}
+  SMTP_HOST: {{ .Chart.Annotations.smtpDemoService | quote }}
+  SMTP_PORT: {{ .Chart.Annotations.smtpPort | quote }}
+{{- else }}
+  MAILDOMAIN: {{ required "maildomain missing" .Values.mail.maildomain | quote }}
+  BOUNCE_LOCALPART: {{ required "bounceLocalpart missing" .Values.mail.bounceLocalpart | quote }}
+  BOUNCE_RETURNPATH: {{ required "bounceReturnpath missing" .Values.mail.bounceReturnpath | quote }}
+  IMAP_SERVER: {{ required "imapServer missing" .Values.mail.imapServer | quote }}
+  IMAP_PORT: {{ required "imapPort missing" .Values.mail.imapPort | quote }}
+  IMAP_IS_SSL: {{ required "imapIsSSL missing" .Values.mail.imapIsSSL | quote }}
+  IMAP_INBOX_FOLDER: {{ required "imapInboxFolder missing" .Values.mail.imapInboxFolder | quote }}
+  SMTP_HOST: {{ required "smtpServer missing" .Values.mail.smtpServer | quote }}
+  SMTP_PORT: {{ required "smtpPort missing" .Values.mail.smtpPort | quote }}
+{{- end }}

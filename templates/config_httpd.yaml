@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-httpd
+  namespace: {{ .Release.Namespace }}
+data:
+  SERVERNAME: {{ .Values.servername | quote }}
+  SERVER_CERT: {{ .Values.httpd.serverCert | quote }}
+  SERVER_KEY: {{ .Values.httpd.serverKey | quote }}
+  MAX_CONNECTIONS_PER_CHILD: {{ .Values.httpd.internMaxConnectionsPerChild | quote }}
+  MAX_REQUEST_WORKERS: {{ .Values.httpd.internMaxRequestWorkers | quote }}
+  SERVER_LIMIT: {{ .Values.httpd.internServerLimit | quote }}
+  START_SERVERS: {{ .Values.httpd.internStartServers | quote }}
+  MIN_SPARE_SERVERS: {{ .Values.httpd.internMinSpareServers | quote }}
+  MAX_SPARE_SERVERS: {{ .Values.httpd.internMaxSpareServers | quote }}
+  LISTEN_BACKLOG: {{ .Values.httpd.listenBacklog | quote }}

@@ -1,0 +1,14 @@
+{{- if eq .Values.mail.deployMailserver "1" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Annotations.imapDemoService }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    imapimpl: imapimpl
+  ports:
+    - protocol: TCP
+      port: 993
+      targetPort: 993
+{{ end }}

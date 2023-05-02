@@ -1,0 +1,133 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: paroisse-set-httpd
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: paroisse-httpd-impl
+  serviceName: civicrmhttpd
+  replicas: {{ .Values.replicas.httpd }}
+  template:
+    metadata:
+      labels:
+        app: paroisse-httpd-impl
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: dbrouter
+        resources:
+          requests:
+            memory: {{ .Values.limits.db_router.memory }}
+            cpu: {{ .Values.limits.db_router.cpu }}
+          limits:
+            memory: {{ .Values.limits.db_router.memory }}
+            cpu: {{ .Values.limits.db_router.cpu }}
+        image: {{ .Chart.Annotations.dbrouterImage }}
+        imagePullPolicy: Never                
+        volumeMounts:
+        - name: dbclientsocketvol
+          mountPath: /SOCK
+        - name: dbcacertvol
+          mountPath: {{ .Chart.Annotations.dbrouterca }}
+          subPath: {{ .Values.db.dbrouterCaField }}
+          readOnly: true        
+      - name: https
+        resources:
+          requests:
+            memory: {{ .Values.limits.httpd.memory }}
+            cpu: {{ .Values.limits.httpd.cpu }}
+          limits:
+            memory: {{ .Values.limits.httpd.memory }}
+            cpu: {{ .Values.limits.httpd.cpu }}
+        image: {{ .Chart.Annotations.httpdImage }}
+        imagePullPolicy: Never
+#        command: ['sh','-c','while true;do sleep 5000;done']
+        envFrom:
+        - configMapRef:
+            name: config-httpd
+        ports:
+        - containerPort: 443
+          name: https
+        volumeMounts:
+        - name: filevol
+          mountPath: /app/web/sites
+        - name: privatevol
+          mountPath: /app/private        
+        - name: servercertvol
+          mountPath: {{ .Values.httpd.serverCert }}
+          subPath: {{ .Values.httpd.serverCertField }}
+          readOnly: true
+        - name: serverkeyvol
+          mountPath: {{ .Values.httpd.serverKey }}
+          subPath: {{ .Values.httpd.serverKeyField }}
+          readOnly: true
+        - name: dbclientsocketvol
+          mountPath: /var/run/mysqld
+{{- if eq .Values.mail.deployMailserver "1" }}
+        - name: httpdcacertsvol
+          mountPath: {{ .Chart.Annotations.cacertsMountpoint }}
+          readOnly: true
+{{- end }}
+      initContainers:
+{{- if eq .Values.mail.deployMailserver "1" }}
+      - name: httpdgenca
+        image: {{ .Chart.Annotations.genHashedCaImage }}
+        imagePullPolicy: Never
+        resources:
+          requests:
+            memory: {{ .Values.limits.genca.memory }}
+            cpu: {{ .Values.limits.genca.cpu }}
+          limits:
+            memory: {{ .Values.limits.genca.memory }}
+            cpu: {{ .Values.limits.genca.cpu }}
+        volumeMounts:
+        - name: mailcacertvol
+          mountPath: {{ .Chart.Annotations.mailserverCaCertMountpoint }}
+          subPath: {{ .Values.mail.caCertField }}
+          readOnly: true
+        - name: httpdcacertsvol
+          mountPath: {{ .Chart.Annotations.genHashedCaCertsMountpoint }}
+{{- end }}
+      - name: wait-db
+        resources:
+          requests:
+            memory: {{ .Values.limits.httpd_init.memory }}
+            cpu: {{ .Values.limits.httpd_init.cpu }}
+          limits:
+            memory: {{ .Values.limits.httpd_init.memory }}
+            cpu: {{ .Values.limits.httpd_init.cpu }}
+        image: busybox
+        imagePullPolicy: Never
+        command: [ 'sh','-c','until nc -z civicrmdb 3306; do echo waiting for paroisse-db;sleep 2;done' ]
+      volumes:
+        - name: dbclientsocketvol
+          emptyDir:
+            medium: Memory
+        - name: filevol
+          persistentVolumeClaim:
+            claimName: filevolclaim
+        - name: privatevol
+          persistentVolumeClaim:
+            claimName: privatevolclaim        
+        - name: servercertvol
+          secret:
+            secretName: {{ .Values.httpd.serverCertSecret }}
+        - name: serverkeyvol
+          secret:
+            secretName: {{ .Values.httpd.serverKeySecret }}        
+        - name: dbcacertvol
+          secret:
+            secretName: {{ .Values.db.dbrouterCaSecret }}
+            optional: false        
+{{- if eq .Values.mail.deployMailserver "1" }}
+        - name: mailcacertvol
+          secret:
+            secretName: {{ .Values.mail.caCertSecret }}
+            optional: false
+        - name: httpdcacertsvol
+          emptyDir:
+            medium: Memory
+{{- end }}

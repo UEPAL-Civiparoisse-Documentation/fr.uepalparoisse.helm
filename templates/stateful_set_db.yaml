@@ -1,0 +1,205 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: paroisse-set-db
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: paroisse-db-impl
+  serviceName: civicrmdb
+  replicas: {{ .Values.replicas.db }}
+  template:
+    metadata:
+      labels:
+        app: paroisse-db-impl
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: db
+        resources:
+          requests:
+            memory: {{ .Values.limits.db.memory }}
+            cpu: {{ .Values.limits.db.cpu }}
+          limits:
+            memory: {{ .Values.limits.db.memory }}
+            cpu: {{ .Values.limits.db.cpu }}
+        image: {{ .Chart.Annotations.dbImage }}
+        imagePullPolicy: Never
+        envFrom:
+        - configMapRef:
+            name: config-db-env-server
+        volumeMounts:
+        - name: dbvol
+          mountPath: /var/lib/mysql
+        - name: dbconfigserver
+          mountPath: {{ .Chart.Annotations.dbserverconfigmountpoint}}
+          subPath: mysqldcnf
+          readOnly: true
+        - name: dbcacertvol
+          mountPath: {{ .Chart.Annotations.dbserversslca }}
+          subPath: {{.Values.db.dbcaCertField}}
+        - name: dbservercertvol
+          mountPath: {{ .Chart.Annotations.dbserversslcert }}  
+          subPath: {{ .Values.db.dbserverCertField}}
+        - name: dbserverkeyvol
+          mountPath: {{ .Chart.Annotations.dbserversslkey }}
+          subPath: {{ .Values.db.dbserverKeyField }}
+        readinessProbe:
+          exec:
+            command:
+              - mysqladmin
+              - ping
+          initialDelaySeconds: 60
+          periodSeconds: 60      
+      initContainers:
+      - name: init
+        resources:
+          requests:
+            memory: {{ .Values.limits.db_init.memory }}
+            cpu: {{ .Values.limits.db_init.cpu }}
+          limits:
+            memory: {{ .Values.limits.db_init.memory }}
+            cpu: {{ .Values.limits.db_init.cpu }}
+        image: {{ .Chart.Annotations.initImage }}
+        imagePullPolicy: Never
+        envFrom:
+        - configMapRef:
+            name: config-init
+        volumeMounts:
+        - name: dbvol
+          mountPath: /var/lib/mysql
+        - name: filevol
+          mountPath: /app/web/sites
+        - name: privatevol
+          mountPath: /app/private
+        - name: dbrootsecretvol
+          mountPath: /var/run/secrets/dbrootsecret
+          readOnly: true   
+          subPath: dbrootsecret
+        - name: dbsecretvol
+          mountPath: /var/run/secrets/dbsecret
+          subPath: dbsecret
+          readOnly: true   
+        - name: drupaladminpasswordvol
+          mountPath: /var/run/secrets/drupalAdminPassword
+          readOnly: true   
+          subPath: drupalAdminPassword
+        - name: drupaladminuservol
+          mountPath: /var/run/secrets/drupalAdminUser
+          subPath: drupalAdminUser
+          readOnly: true   
+        - name: imapuservol
+          mountPath: {{ .Chart.Annotations.imapUsernameSecretMountpoint }} 
+          subPath: {{ .Values.mail.imapUsernameSecretField }}
+          readOnly: true
+        - name: imappasswdvol
+          mountPath: {{ .Chart.Annotations.imapPasswordSecretMountpoint }}
+          subPath: {{ .Values.mail.imapPasswordSecretField }}
+          readOnly: true
+        - name: smtpuservol
+          mountPath: {{ .Chart.Annotations.smtpUsernameSecretMountpoint }}
+          subPath: {{ .Values.mail.smtpUsernameSecretField }}
+          readOnly: true
+        - name: smtppasswdvol
+          mountPath: {{ .Chart.Annotations.smtpPasswordSecretMountpoint }}
+          subPath: {{ .Values.mail.smtpPasswordSecretField }}
+          readOnly: true    
+      - name: update
+        resources:
+          requests:
+            memory: {{ .Values.limits.db_init.memory }}
+            cpu: {{ .Values.limits.db_init.cpu }}
+          limits:
+            memory: {{ .Values.limits.db_init.memory }}
+            cpu: {{ .Values.limits.db_init.cpu }}
+        image: {{ .Chart.Annotations.updateImage }}
+        imagePullPolicy: Never
+        envFrom:
+        - configMapRef:
+            name: config-update
+        volumeMounts:
+        - name: dbvol
+          mountPath: /var/lib/mysql
+        - name: filevol
+          mountPath: /app/web/sites
+        - name: privatevol
+          mountPath: /app/private    
+        - name: dbrootsecretvol
+          mountPath: /var/run/secrets/dbrootsecret
+          subPath: dbrootsecret
+          readOnly: true            
+        - name: dbsecretvol
+          mountPath: /var/run/secrets/dbsecret
+          subPath: dbsecret
+          readOnly: true            
+        - name: drupaladminpasswordvol
+          mountPath: /var/run/secrets/drupalAdminPassword
+          subPath: drupalAdminPassword
+          readOnly: true            
+        - name: drupaladminuservol
+          mountPath: /var/run/secrets/drupalAdminUser
+          subPath: drupalAdminUser
+          readOnly: true            
+      volumes:
+        - name: filevol
+          persistentVolumeClaim:
+            claimName: filevolclaim
+        - name: privatevol
+          persistentVolumeClaim:
+            claimName: privatevolclaim
+        - name: dbvol
+          persistentVolumeClaim:
+            claimName: dbvolclaim
+        - name: dbrootsecretvol
+          secret:
+            secretName: secret
+            optional: false            
+        - name: dbsecretvol
+          secret:
+            secretName: secret
+            optional: false           
+        - name: drupaladminpasswordvol
+          secret:
+            secretName: secret
+            optional: false            
+        - name: drupaladminuservol
+          secret:
+            secretName: secret
+            optional: false
+        - name: dbconfigserver
+          configMap:
+            name: config-db-server        
+        - name: dbcacertvol
+          secret:
+            secretName: {{ .Values.db.dbcaCertSecret }}     
+            optional: false
+        - name: dbservercertvol
+          secret:
+            secretName: {{ .Values.db.dbserverCertSecret }}   
+            optional: false
+        - name: dbserverkeyvol
+          secret:
+            secretName: {{ .Values.db.dbserverKeySecret }}    
+            optional: false
+        - name: imapuservol
+          secret:
+            secretName: {{ .Values.mail.imapUsernameSecret }}
+            optional: false
+        - name: imapuser2vol
+          secret:
+            secretName: {{ .Values.mail.imapUsername2Secret }}
+            optional: false
+        - name: imappasswdvol
+          secret:
+            secretName: {{ .Values.mail.imapPasswordSecret }}
+            optional: false
+        - name: smtpuservol
+          secret:
+            secretName: {{ .Values.mail.smtpUsernameSecret }}
+            optional: false
+        - name: smtppasswdvol
+          secret:
+            secretName: {{ .Values.mail.smtpPasswordSecret }}
+            optional: false
