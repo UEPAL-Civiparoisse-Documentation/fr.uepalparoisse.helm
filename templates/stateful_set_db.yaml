@@ -25,7 +25,7 @@ spec:
           limits:
             memory: {{ .Values.limits.db.memory }}
             cpu: {{ .Values.limits.db.cpu }}
-        image: {{ .Chart.Annotations.dbImage }}
+        image: "{{ .Chart.Annotations.dbImage }}:{{ .Values.imageVersion }}"
         imagePullPolicy: Never
         envFrom:
         - configMapRef:
@@ -62,7 +62,7 @@ spec:
           limits:
             memory: {{ .Values.limits.db_init.memory }}
             cpu: {{ .Values.limits.db_init.cpu }}
-        image: {{ .Chart.Annotations.initImage }}
+        image: "{{ .Chart.Annotations.initImage }}:{{ .Values.imageVersion }}"
         imagePullPolicy: Never
         envFrom:
         - configMapRef:
@@ -114,7 +114,7 @@ spec:
           limits:
             memory: {{ .Values.limits.db_init.memory }}
             cpu: {{ .Values.limits.db_init.cpu }}
-        image: {{ .Chart.Annotations.updateImage }}
+        image: "{{ .Chart.Annotations.updateImage }}:{{ .Values.imageVersion }}"
         imagePullPolicy: Never
         envFrom:
         - configMapRef:

@@ -15,7 +15,7 @@ type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.1.2
+version: 0.1.1
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application. Versions are not expected to
@@ -53,15 +53,15 @@ annotations:
   secretrefsDrupalAdminPasswordSecret: "drupalAdminPassword"
   secretrefsDbsecret: "dbsecret"
   secretrefsDbrootsecret: "dbrootsecret"
-  toolsImage: "uepal_test/tools:latest"
-  cronImage: "uepal_test/cron:latest"
-  dbImage: "uepal_test/mysql_tls_server:latest"
-  dbrouterImage: "uepal_test/mysql_tls_router:latest"  
-  initImage: "uepal_test/init:latest"
-  httpdImage: "uepal_test/httpd:latest"
-  updateImage: "uepal_test/update:latest"
-  mailserverImage: "uepal_test/test_opensmtpd_dovecot:latest"
-  genHashedCaImage: "uepal_test/gen_hashed_ca:latest"
+  toolsImage: "uepal_test/tools"
+  cronImage: "uepal_test/cron"
+  dbImage: "uepal_test/mysql_tls_server"
+  dbrouterImage: "uepal_test/mysql_tls_router"  
+  initImage: "uepal_test/init"
+  httpdImage: "uepal_test/httpd"
+  updateImage: "uepal_test/update"
+  mailserverImage: "uepal_test/test_opensmtpd_dovecot"
+  genHashedCaImage: "uepal_test/gen_hashed_ca"
   storageDbsize: "1Gi"
   storageFilesize: "1Gi"
   storagePrivatesize: "1Gi"

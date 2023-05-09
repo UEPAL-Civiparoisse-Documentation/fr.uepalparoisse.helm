@@ -17,7 +17,7 @@ spec:
           initContainers:
 {{- if eq .Values.mail.deployMailserver "1" }}
           - name: crongenca
-            image: {{ .Chart.Annotations.genHashedCaImage }}
+            image: "{{ .Chart.Annotations.genHashedCaImage }}:{{ .Values.imageVersion }}"
             imagePullPolicy: Never
             resources:
               requests:
@@ -54,7 +54,7 @@ spec:
               limits:
                 memory: {{ .Values.limits.cron.memory }}
                 cpu: {{ .Values.limits.cron.cpu }}
-            image: {{ .Chart.Annotations.cronImage }}
+            image: "{{ .Chart.Annotations.cronImage }}:{{ .Values.imageVersion }}"
             imagePullPolicy: Never
             volumeMounts:
             - name: filevol
@@ -76,7 +76,7 @@ spec:
               limits:
                 memory: {{ .Values.limits.db_router.memory }}
                 cpu: {{ .Values.limits.db_router.cpu }}
-            image: {{ .Chart.Annotations.dbrouterImage }}
+            image: "{{ .Chart.Annotations.dbrouterImage }}:{{ .Values.imageVersion }}"
             imagePullPolicy: Never                
             volumeMounts:
             - name: dbcronsocketvol

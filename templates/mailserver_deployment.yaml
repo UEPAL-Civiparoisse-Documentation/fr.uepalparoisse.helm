@@ -19,7 +19,7 @@ spec:
       automountServiceAccountToken: false
       initContainers:
       - name: mailgenca
-        image: {{ .Chart.Annotations.genHashedCaImage }}
+        image: "{{ .Chart.Annotations.genHashedCaImage }}:{{ .Values.imageVersion }}"
         imagePullPolicy: Never
         volumeMounts:
         - name: mailcacertvol
@@ -30,7 +30,7 @@ spec:
           mountPath: {{ .Chart.Annotations.genHashedCaCertsMountpoint }}
       containers:
       - name:  mailserver
-        image: {{ .Chart.Annotations.mailserverImage }}
+        image: "{{ .Chart.Annotations.mailserverImage }}:{{ .Values.imageVersion }}"
         imagePullPolicy: Never        
         envFrom:
         - configMapRef:

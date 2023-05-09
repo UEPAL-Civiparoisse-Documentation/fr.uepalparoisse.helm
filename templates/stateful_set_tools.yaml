@@ -24,7 +24,7 @@ spec:
           limits:
             memory: {{ .Values.limits.db_router.memory }}
             cpu: {{ .Values.limits.db_router.cpu }}
-        image: {{ .Chart.Annotations.dbrouterImage }}
+        image: "{{ .Chart.Annotations.dbrouterImage }}:{{ .Values.imageVersion }}"
         imagePullPolicy: Never                
         volumeMounts:
         - name: dbclientsocketvol
@@ -41,7 +41,7 @@ spec:
           limits:
             memory: {{ .Values.limits.httpd.memory }}
             cpu: {{ .Values.limits.httpd.cpu }}
-        image: {{ .Chart.Annotations.toolsImage }}
+        image: "{{ .Chart.Annotations.toolsImage }}:{{ .Values.imageVersion }}"
         imagePullPolicy: Never
         command: [ 'sh', '-c', 'while true; do sleep 3600;done' ]
         volumeMounts:
@@ -59,7 +59,7 @@ spec:
       initContainers:
 {{- if eq .Values.mail.deployMailserver "1" }}
       - name: toolsgenca
-        image: {{ .Chart.Annotations.genHashedCaImage }}
+        image: "{{ .Chart.Annotations.genHashedCaImage }}:{{ .Values.imageVersion }}"
         imagePullPolicy: Never
         resources:
           requests:
